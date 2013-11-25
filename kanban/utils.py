@@ -32,6 +32,8 @@ class JSONResponseMixin(object):
                 return result
             elif isinstance(obj, Model) and  hasattr(obj, 'dictify'):
                 return obj.dictify()
+            elif type(obj) in (unicode, str, int):
+                return obj
             else:
                 return django_serialize('python', [obj])[0]
 

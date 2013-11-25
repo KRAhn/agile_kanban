@@ -21,4 +21,12 @@ class Status(models.Model):
     DONE = 4
     CONFIRMED = 5
     REJECTED = 6
-    name = models.CharField(max_length=32)
+    STATUS_CHOICES = (
+        (REQUESTED, 'requested'),
+        (TO_DO, 'to_do'),
+        (IN_PROGRESS, 'in_progress'),
+        (DONE, 'done'),
+        (CONFIRMED, 'confirmed'),
+        (REJECTED, 'rejected')
+    )
+    name = models.CharField(max_length=32,  choices=STATUS_CHOICES)
