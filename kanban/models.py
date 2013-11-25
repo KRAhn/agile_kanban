@@ -6,11 +6,11 @@ class Iteration(models.Model):
 
 
 class Task(models.Model):
-    iteration = models.ForeignKey(Iteration)
+    iteration = models.ForeignKey('Iteration')
     title = models.CharField(max_length=128)
     description = models.TextField()
     author = models.CharField(max_length=64)
-    status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status')
     created_time = models.DateField(auto_now_add=True)
 
 
@@ -21,12 +21,4 @@ class Status(models.Model):
     DONE = 4
     CONFIRMED = 5
     REJECTED = 6
-    STATUS_CHOICES = (
-        (REQUESTED, 'Requested'),
-        (TO_DO, 'To do'),
-        (IN_PROGRESS, 'In progress'),
-        (DONE, 'Done'),
-        (CONFIRMED, 'Confirmed'),
-        (REJECTED, 'Rejected')
-    )
-    name = models.CharField(choices=STATUS_CHOICES, max_length=32)
+    name = models.CharField(max_length=32)
