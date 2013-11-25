@@ -1,4 +1,3 @@
 *.py[cod]
-*.sqlite3
 *.sw[po]
 .idea

@@ -8,5 +8,6 @@ from kanban.views import *
 urlpatterns = patterns(
     '',
     url(r'^$', HomePageView.as_view(), name='home'),
-    url(r'^iteration/now/$', )
+    url(r'^iteration/now/$', IterationDetailView.as_view(),
+        name='iteration_detail')
 )
