@@ -11,8 +11,8 @@ class HomePageView(TemplateView):
 class IterationDetailView(JSONView):
 
     def get_context_data(self, **kwargs):
-        return {status.get_name_display():
-                dict(id=status.id,
-                     displayName=status.name,
-                     task=Task.objects.filter(status=status))
-                for status in Status.objects.all()}
+        return [dict(id=status.id,
+                     name=status.name,
+                     displayName=status.get_name_display(),
+                     tasks=Task.objects.filter(status=status))
+                for status in Status.objects.all()]

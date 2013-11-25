@@ -15,18 +15,18 @@ class Task(models.Model):
 
 
 class Status(models.Model):
-    REQUESTED = 1
-    TO_DO = 2
-    IN_PROGRESS = 3
-    DONE = 4
-    CONFIRMED = 5
-    REJECTED = 6
+    REQUESTED = 'requested'
+    TO_DO = 'to_do'
+    IN_PROGRESS = 'in_progress'
+    DONE = 'done'
+    CONFIRMED = 'confirmed'
+    REJECTED = 'rejected'
     STATUS_CHOICES = (
-        (REQUESTED, 'requested'),
-        (TO_DO, 'to_do'),
-        (IN_PROGRESS, 'in_progress'),
-        (DONE, 'done'),
-        (CONFIRMED, 'confirmed'),
-        (REJECTED, 'rejected')
+        (REQUESTED, 'Requested'),
+        (TO_DO, 'To do'),
+        (IN_PROGRESS, 'In progress'),
+        (DONE, 'Done'),
+        (CONFIRMED, 'Confirmed'),
+        (REJECTED, 'Rejected')
     )
     name = models.CharField(max_length=32,  choices=STATUS_CHOICES)
