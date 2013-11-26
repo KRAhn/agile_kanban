@@ -76,9 +76,10 @@ Task.prototype.render = function() {
   var $title = $('<h1></h1>');
   $title.text(this.title);
   $header.append($title);
-  $header.append($(this.author + ' , ' + this.createdTime));
+  $header.append($(document.createTextNode(this.author + ' , ' + this.createdTime)));
 
   $article.append($header);
+  $article.append($('<p>'+this.description+'</p>'));
   return $article;
 }
 
@@ -96,8 +97,8 @@ var EmptyCard = function(taskGroup){
         <td><input type="text" id="new-title" /></td>\
       </tr>\
       <tr>\
-        <td><label for="new-writer">작성자</label></td>\
-        <td><input type="text" id="new-writer" /></td>\
+        <td><label for="new-author">작성자</label></td>\
+        <td><input type="text" id="new-author" /></td>\
       </tr>\
       <tr>\
         <td><label for="new-description">설명</label></td>\
@@ -107,15 +108,31 @@ var EmptyCard = function(taskGroup){
     <input type="submit" value="저장" /><br />\
     <input type="reset" value="취소" />\
   </form>');
-  taskGroup.$element.on('submit', '.empty-card', function() {
-    return false;
-  });
-  taskGroup.$element.on('reset', '.empty-card', $.proxy(function() {
+  this.taskGroup.$element.on('submit', '.empty-card', $.proxy(this.onSubmit, this));
+  this.taskGroup.$element.on('reset', '.empty-card', $.proxy(function() {
     this.$element.remove();
     return false;
   }, this));
-
 };
+
+EmptyCard.prototype.onSubmit = function(e) {
+  e.preventDefault();
+
+  var title = this.$element.find('#new-title').val();
+  var author= this.$element.find('#new-author').val();
+  var description = this.$element.find('#new-description').val();
+  var now = new Date();
+  var createdTime = $.datepicker.formatDate('yy-mm-dd', now) + ' ' +
+                    [now.getHours(), now.getMinutes(), now.getSeconds()].join(':');
+  var status = this.taskGroup.name;
+  var task = new Task(title, description, author, status, createdTime);
+  this.taskGroup.tasks.push(task);
+  this.$element.remove();
+
+  var $article = task.render();
+  this.taskGroup.$element.append($article);
+  return false;
+}
 
 $(function()
 {
