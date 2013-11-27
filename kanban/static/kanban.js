@@ -9,7 +9,6 @@ var TaskManager = {
   taskGroups: [],
   renderPage: function () {
     this.taskGroups.forEach(function (taskGroup) {
-      taskGroup.$element = taskGroup.render();
       this.$taskSection.append(taskGroup.$element);
     }, this);
   }
@@ -22,11 +21,12 @@ var TaskGroup = function(id, name, displayName, tasks) {
   this.id = id;
   this.name = name;
   this.displayName = displayName;
-  this.$element = undefined;
   this.tasks = tasks.map(function(task) {
     new Task(task.title, task.description, task.author, task.status, task.createdTime);
   });
 
+  this.$element = this.render();
+  this.emptyCard = new EmptyCard(this);
 };
 
 TaskGroup.prototype.render = function () {
@@ -46,13 +46,14 @@ TaskGroup.prototype.render = function () {
 
   var $addButton = $('<button class="add-card">Add card</button>');
   $addButton.on('click', $.proxy(this.addCard, this));
-  $section.append($addButton)
+  $section.append($addButton);
 
   return $section;
 };
 
-TaskGroup.prototype.addCard = function() {
-  this.$element.children('.tasks-wrap').append(new EmptyCard(this).$element);
+TaskGroup.prototype.addCard = function(e) {
+  $(e.currentTarget).hide();
+  this.emptyCard.$element.show();
 };
 
 var Task = function(title, description, author, status, createdTime) {
@@ -108,9 +109,11 @@ var EmptyCard = function(taskGroup){
     <input type="submit" value="저장" /><br />\
     <input type="reset" value="취소" />\
   </form>');
+  this.taskGroup.$element.append(this.$element);
   this.taskGroup.$element.on('submit', '.empty-card', $.proxy(this.onSubmit, this));
   this.taskGroup.$element.on('reset', '.empty-card', $.proxy(function() {
-    this.$element.remove();
+    this.$element.hide();
+    this.taskGroup.$element.find('.add-card').show();
     return false;
   }, this));
 };
@@ -127,23 +130,30 @@ EmptyCard.prototype.onSubmit = function(e) {
   var status = this.taskGroup.name;
   var task = new Task(title, description, author, status, createdTime);
   this.taskGroup.tasks.push(task);
-  this.$element.remove();
-
   var $article = task.render();
-  this.taskGroup.$element.append($article);
-  return false;
+  this.taskGroup.$element.find('.tasks-wrap').append($article);
+
+  this.$element.hide();
+  this.$element.find('input[type="text"], textarea').each(function()
+  {
+    $(this).val('');
+  });
+  this.taskGroup.$element.find('.add-card').show();
 }
 
 $(function()
 {
   TaskManager.initialize();
-  $.get('/iteration/now/', function(taskGroups){
-    TaskManager.taskGroups = taskGroups.map(function(taskGroup){
+  $.get('/iteration/now/', function(iteration){
+    $('#iteration-goal').text(iteration.goal);
+    TaskManager.taskGroups = iteration.taskGroups.map(function(taskGroup){
       return new TaskGroup(taskGroup.id,
                            taskGroup.name,
                            taskGroup.displayName,
                            taskGroup.tasks);
     });
+
     TaskManager.renderPage();
   },  'json');
+
 });

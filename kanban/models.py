@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Iteration(models.Model):
-    name = models.CharField(max_length=50)
+    goal = models.CharField(max_length=128)
 
 
 class Task(models.Model):
