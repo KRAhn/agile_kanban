@@ -7,7 +7,7 @@ from kanban.views import *
 
 urlpatterns = patterns(
     '',
-    url(r'^$', HomePageView.as_view(), name='home'),
-    url(r'^iteration/now/$', IterationDetailView.as_view(),
-        name='iteration_detail')
+    url(r'^$', HomePageView.as_view()),
+    url(r'^iteration/now/$', IterationDetailView.as_view()),
+    url(r'^iteration/now/add/$', TaskAddView.as_view()),
 )

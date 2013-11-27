@@ -11,6 +11,7 @@ var TaskManager = {
     this.taskGroups.forEach(function (taskGroup) {
       this.$taskSection.append(taskGroup.$element);
     }, this);
+    $('.task-list').sortable({connectWith: ".task-list"}).disableSelection();
   }
 };
 
@@ -22,7 +23,7 @@ var TaskGroup = function(id, name, displayName, tasks) {
   this.name = name;
   this.displayName = displayName;
   this.tasks = tasks.map(function(task) {
-    new Task(task.title, task.description, task.author, task.status, task.createdTime);
+    return new Task(task.title, task.description, task.author, task.status, task.createdTime);
   });
 
   this.$element = this.render();
@@ -37,24 +38,36 @@ TaskGroup.prototype.render = function () {
   $title.text(this.displayName);
   $section.append($title);
 
-  var $div = $('<div class="tasks-wrap"></div>');
-  $section.append($div);
+  var $taskList = $('<ul class="task-list"></ul>');
+  $taskList.attr('id', this.name + '-list');
+  $section.append($taskList);
 
   this.tasks.forEach(function (task) {
-    $div.append(task.render());
+    var $li = $('<li></li>');
+    $li.append(task.render());
+    $taskList.append($li);
   });
 
   var $addButton = $('<button class="add-card">Add card</button>');
-  $addButton.on('click', $.proxy(this.addCard, this));
+  $addButton.on('click', $.proxy(this.onAddCardClicked, this));
   $section.append($addButton);
 
   return $section;
 };
 
-TaskGroup.prototype.addCard = function(e) {
+TaskGroup.prototype.onAddCardClicked = function(e) {
   $(e.currentTarget).hide();
   this.emptyCard.$element.show();
 };
+
+TaskGroup.prototype.addTask = function(task) {
+  this.tasks.push(task);
+  var $li = $('<li></li>');
+  $li.append(task.render());
+  this.$element.children('task-list').append($li);
+}
+
+
 
 var Task = function(title, description, author, status, createdTime) {
   if(!(this instanceof Task)) {
@@ -82,7 +95,9 @@ Task.prototype.render = function() {
   $article.append($header);
   $article.append($('<p>'+this.description+'</p>'));
   return $article;
-}
+};
+
+
 
 var EmptyCard = function(taskGroup){
   if(!(this instanceof EmptyCard)){
@@ -91,7 +106,7 @@ var EmptyCard = function(taskGroup){
 
   this.taskGroup = taskGroup;
   this.$element = $('\
-  <form method="post" class="empty-card task">\
+  <form action="/iteration/now/add/" method="post" class="empty-card task">\
     <table>\
       <tr>\
         <td><label for="new-title">제목</label></td>\
@@ -129,9 +144,8 @@ EmptyCard.prototype.onSubmit = function(e) {
                     [now.getHours(), now.getMinutes(), now.getSeconds()].join(':');
   var status = this.taskGroup.name;
   var task = new Task(title, description, author, status, createdTime);
-  this.taskGroup.tasks.push(task);
-  var $article = task.render();
-  this.taskGroup.$element.find('.tasks-wrap').append($article);
+  this.taskGroup.tasks.push(task);;
+  this.taskGroup.$element.addTask(task);
 
   this.$element.hide();
   this.$element.find('input[type="text"], textarea').each(function()
@@ -139,7 +153,27 @@ EmptyCard.prototype.onSubmit = function(e) {
     $(this).val('');
   });
   this.taskGroup.$element.find('.add-card').show();
-}
+
+  this.submit(task);
+};
+
+EmptyCard.prototype.submit = function (task) {
+  $.post(this.$element.attr('action'),
+         {
+           title: task.title,
+           description: task.description,
+           author: task.author,
+           status_name: task.status,
+           created_time: task.createdTime
+         },
+        function(data){
+          console.log(data);
+        }
+  );
+};
+
+
+
 
 $(function()
 {

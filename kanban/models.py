@@ -11,7 +11,17 @@ class Task(models.Model):
     description = models.TextField()
     author = models.CharField(max_length=64)
     status = models.ForeignKey('Status')
-    created_time = models.DateField(auto_now_add=True)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def dictify(self):
+        return dict(
+            iteration=self.iteration.goal,
+            title=self.title,
+            description=self.description,
+            author=self.author,
+            status=self.status.name,
+            createdTime=self.created_time.strftime('%y-%m-%d %H:%M:%S')
+        )
 
 
 class Status(models.Model):
