@@ -11,7 +11,24 @@ var TaskManager = {
     this.taskGroups.forEach(function (taskGroup) {
       this.$taskSection.append(taskGroup.$element);
     }, this);
-    $('.task-list').sortable({connectWith: ".task-list"}).disableSelection();
+    $('.task-list').sortable({
+      connectWith: ".task-list",
+      cursor: "move"
+    }).disableSelection();
+    $('.task-list').on('sortupdate', $.proxy(function(event, ui){
+      if(ui.sender != undefined) {
+        var from = this.getTaskGroupWithName(ui.sender.attr('id'));
+        var to = this.getTaskGroupWithName($(event.currentTarget));
+        console.log(ui);
+      }
+    }, this));
+  },
+  getTaskGroupWithName: function(name) {
+    for(var i=0; i<this.taskGroups.length; ++i) {
+      if(this.taskGroups[i].name == name)
+        return this.taskGroups[i];
+    }
+    return null;
   }
 };
 
