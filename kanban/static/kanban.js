@@ -17,9 +17,16 @@ var TaskManager = {
     }).disableSelection();
     $('.task-list').on('sortupdate', $.proxy(function(event, ui){
       if(ui.sender != undefined) {
-        var from = this.getTaskGroupWithName(ui.sender.attr('id'));
-        var to = this.getTaskGroupWithName($(event.currentTarget));
-        console.log(ui);
+        var from = this.getTaskGroupWithName(ui.sender.attr('data-name'));
+        var to = this.getTaskGroupWithName($(event.currentTarget).attr('data-name'));
+        var taskId = ui.item.children('article').attr('data-id');
+        from.tasks.forEach(function(task) {
+          if(task.id == taskId)
+            ui.item.task = task;
+        });
+        from.tasks = from.tasks.filter(function(task){return task.id != taskId;})
+        to.tasks.push(ui.item.task);
+        ui.item.task.status = to.name;
       }
     }, this));
   },
@@ -40,7 +47,7 @@ var TaskGroup = function(id, name, displayName, tasks) {
   this.name = name;
   this.displayName = displayName;
   this.tasks = tasks.map(function(task) {
-    return new Task(task.title, task.description, task.author, task.status, task.createdTime);
+    return new Task(task.id, task.title, task.description, task.author, task.status, task.createdTime);
   });
 
   this.$element = this.render();
@@ -57,6 +64,7 @@ TaskGroup.prototype.render = function () {
 
   var $taskList = $('<ul class="task-list"></ul>');
   $taskList.attr('id', this.name + '-list');
+  $taskList.attr('data-name', this.name);
   $section.append($taskList);
 
   this.tasks.forEach(function (task) {
@@ -86,11 +94,11 @@ TaskGroup.prototype.addTask = function(task) {
 
 
 
-var Task = function(title, description, author, status, createdTime) {
+var Task = function(id, title, description, author, status, createdTime) {
   if(!(this instanceof Task)) {
-    return new Task(title, description, author, status, createdTime);
+    return new Task(id, title, description, author, status, createdTime);
   }
-
+  this.id = id;
   this.title = title;
   this.description = description;
   this.author = author;
@@ -102,6 +110,7 @@ var Task = function(title, description, author, status, createdTime) {
 
 Task.prototype.render = function() {
   var $article = $('<article class="task"></article>');
+  $article.attr('data-id', this.id);
 
   var $header = $('<header></header>');
   var $title = $('<h1></h1>');

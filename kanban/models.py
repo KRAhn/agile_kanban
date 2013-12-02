@@ -15,6 +15,7 @@ class Task(models.Model):
 
     def dictify(self):
         return dict(
+            id=self.id,
             iteration=self.iteration.goal,
             title=self.title,
             description=self.description,
