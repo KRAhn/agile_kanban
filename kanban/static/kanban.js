@@ -5,6 +5,11 @@
 var TaskManager = {
   initialize: function() {
     this.$taskSection = $('#tasks');
+    $('body').on('click', '.edit-button', this.onEditButtonClicked);
+    $('body').on('submit', '.edit-form', this.onEditFormSubmit);
+    $('body').on('reset', '.edit-form', function(e){
+      $(e.currentTarget).parents('.task').children().toggle();
+    })
   },
   taskGroups: [],
   renderPage: function () {
@@ -19,12 +24,12 @@ var TaskManager = {
       if(ui.sender != undefined) {
         var from = this.getTaskGroupWithName(ui.sender.attr('data-name'));
         var to = this.getTaskGroupWithName($(event.currentTarget).attr('data-name'));
-        var taskId = ui.item.children('article').attr('data-id');
+        var taskId = ui.item.find('article').attr('data-id');
         from.tasks.forEach(function(task) {
           if(task.id == taskId)
             ui.item.task = task;
         });
-        from.tasks = from.tasks.filter(function(task){return task.id != taskId;})
+        from.tasks = from.tasks.filter(function(task){return task.id != taskId;});
         to.tasks.push(ui.item.task);
         ui.item.task.status = to.name;
         ui.item.task.push();
@@ -37,6 +42,34 @@ var TaskManager = {
         return this.taskGroups[i];
     }
     return null;
+  },
+  getTaskWithId: function(taskId) {
+    for(var i=0; i<this.taskGroups.length; ++i) {
+      var tasks = this.taskGroups[i].tasks;
+      for(var j=0; j<tasks.length; ++j) {
+        var task = tasks[j];
+        if(task.id == taskId)
+          return task;
+      }
+    }
+  },
+  onEditButtonClicked: function (e) {
+    e.preventDefault();
+    var $editButton = $(e.currentTarget);
+    var taskId = $editButton.parents('.task').attr('data-id');
+    var task = TaskManager.getTaskWithId(taskId);
+    task.transferToEditMode();
+  },
+  onEditFormSubmit: function(e) {
+    e.preventDefault();
+    var $editForm = $(e.currentTarget);
+    var taskId = $editForm.parents('.task').attr('data-id');
+    var task = TaskManager.getTaskWithId(taskId);
+    task.title = $editForm.find('.title').val();
+    task.author = $editForm.find('.author').val();
+    task.description = $editForm.find('.description').val();
+    task.push();
+    task.$element.children().toggle();
   }
 };
 
@@ -70,7 +103,7 @@ TaskGroup.prototype.render = function () {
 
   this.tasks.forEach(function (task) {
     var $li = $('<li></li>');
-    $li.append(task.render());
+    $li.append(task.$element);
     $taskList.append($li);
   });
 
@@ -89,8 +122,8 @@ TaskGroup.prototype.onAddCardClicked = function(e) {
 TaskGroup.prototype.addTask = function(task) {
   this.tasks.push(task);
   var $li = $('<li></li>');
-  $li.append(task.render());
-  this.$element.children('.task-list').append($li);
+  $li.append(task.$element);
+  this.$element.find('.task-list').append($li);
 }
 
 
@@ -106,12 +139,24 @@ var Task = function(id, title, description, author, status, createdTime) {
   this.status = status;
   this.createdTime = createdTime;
 
-  this.$element = undefined;
+  this.$element = this.render();
 };
 
 Task.prototype.render = function() {
-  var $article = $('<article class="task"></article>');
-  $article.attr('data-id', this.id);
+  var $div = $('<div class="task"></div>');
+  $div.append(this.renderReadMode());
+  $div.append(this.renderEditMode());
+  $div.attr('data-id', this.id)
+  return $div;
+};
+
+Task.prototype.renderReadMode = function() {
+  var $article = $('<article></article>');
+
+  var $editButtonWrap = $('<div class="edit-button-wrap"></div>');
+  var $editButton = $('<a href="" class="edit-button">[수정]</a>');
+  $editButtonWrap.append($editButton);
+  $article.append($editButtonWrap);
 
   var $header = $('<header></header>');
   var $title = $('<h1></h1>');
@@ -120,8 +165,40 @@ Task.prototype.render = function() {
   $header.append($(document.createTextNode(this.author + ' , ' + this.createdTime)));
 
   $article.append($header);
-  $article.append($('<p>'+this.description+'</p>'));
+  $article.append($('<p>' + this.description + '</p>'));
   return $article;
+}
+
+Task.prototype.renderEditMode = function() {
+  var $form = $('\
+  <form method="post" class="edit-form">\
+    <table>\
+      <tr>\
+        <td><label for="title">제목</label></td>\
+        <td><input type="text" class="title" /></td>\
+      </tr>\
+      <tr>\
+        <td><label for="author">작성자</label></td>\
+        <td><input type="text" class="author" /></td>\
+      </tr>\
+      <tr>\
+        <td><label for="description">설명</label></td>\
+        <td><textarea class="description"></textarea></td>\
+      </tr>\
+    </table>\
+    <input type="submit" value="저장" /><br />\
+    <input type="reset" value="취소" />\
+  </form>');
+  return $form;
+};
+
+Task.prototype.transferToEditMode = function () {
+  this.$element.children().toggle();
+  var $form = this.$element.find('form');
+  $form.attr('action', '/task/' + this.id + '/edit/');
+  $form.find('.title').val(this.title);
+  $form.find('.author').val(this.author);
+  $form.find('.description').val(this.description);
 };
 
 Task.prototype.push = function() {
@@ -133,8 +210,7 @@ Task.prototype.push = function() {
   }, function(data){
     console.log(data);
   }, 'json');
-}
-
+};
 
 
 
@@ -148,16 +224,16 @@ var EmptyCard = function(taskGroup){
   <form action="/iteration/now/add/" method="post" class="empty-card task">\
     <table>\
       <tr>\
-        <td><label for="new-title">제목</label></td>\
-        <td><input type="text" id="new-title" /></td>\
+        <td><label for="title">제목</label></td>\
+        <td><input type="text" class="title" /></td>\
       </tr>\
       <tr>\
-        <td><label for="new-author">작성자</label></td>\
-        <td><input type="text" id="new-author" /></td>\
+        <td><label for="author">작성자</label></td>\
+        <td><input type="text" class="author" /></td>\
       </tr>\
       <tr>\
-        <td><label for="new-description">설명</label></td>\
-        <td><textarea id="new-description"></textarea></td>\
+        <td><label for="description">설명</label></td>\
+        <td><textarea class="description"></textarea></td>\
       </tr>\
     </table>\
     <input type="submit" value="저장" /><br />\
@@ -165,7 +241,7 @@ var EmptyCard = function(taskGroup){
   </form>');
   this.taskGroup.$element.append(this.$element);
   this.taskGroup.$element.on('submit', '.empty-card', $.proxy(this.onSubmit, this));
-  this.taskGroup.$element.on('reset', '.empty-card', $.proxy(function() {
+  this.taskGroup.$element.on('reset', '.empty-card', $.proxy(function () {
     this.$element.hide();
     this.taskGroup.$element.find('.add-card').show();
     return false;
@@ -175,9 +251,9 @@ var EmptyCard = function(taskGroup){
 EmptyCard.prototype.onSubmit = function(e) {
   e.preventDefault();
 
-  var title = this.$element.find('#new-title').val();
-  var author= this.$element.find('#new-author').val();
-  var description = this.$element.find('#new-description').val();
+  var title = this.$element.find('.title').val();
+  var author = this.$element.find('.author').val();
+  var description = this.$element.find('.description').val();
   var now = new Date();
   var createdTime = $.datepicker.formatDate('yy-mm-dd', now) + ' ' +
                     [now.getHours(), now.getMinutes(), now.getSeconds()].join(':');
