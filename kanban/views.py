@@ -65,4 +65,4 @@ class TaskAddView(JSONView):
             iteration=iteration
         )
 
-        return dict(task_id=task.id)
+        return dict(id=task.id)

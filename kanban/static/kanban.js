@@ -90,7 +90,7 @@ TaskGroup.prototype.addTask = function(task) {
   this.tasks.push(task);
   var $li = $('<li></li>');
   $li.append(task.render());
-  this.$element.children('task-list').append($li);
+  this.$element.children('.task-list').append($li);
 }
 
 
@@ -182,9 +182,8 @@ EmptyCard.prototype.onSubmit = function(e) {
   var createdTime = $.datepicker.formatDate('yy-mm-dd', now) + ' ' +
                     [now.getHours(), now.getMinutes(), now.getSeconds()].join(':');
   var status = this.taskGroup.name;
-  var task = new Task(title, description, author, status, createdTime);
-  this.taskGroup.tasks.push(task);;
-  this.taskGroup.$element.addTask(task);
+  var task = new Task(undefined, title, description, author, status, createdTime);
+  this.taskGroup.addTask(task);
 
   this.$element.hide();
   this.$element.find('input[type="text"], textarea').each(function()
@@ -193,10 +192,10 @@ EmptyCard.prototype.onSubmit = function(e) {
   });
   this.taskGroup.$element.find('.add-card').show();
 
-  this.submit(task);
+  this.push(task);
 };
 
-EmptyCard.prototype.submit = function (task) {
+EmptyCard.prototype.push = function (task) {
   $.post(this.$element.attr('action'),
          {
            title: task.title,
@@ -206,11 +205,10 @@ EmptyCard.prototype.submit = function (task) {
            created_time: task.createdTime
          },
         function(data){
-          console.log(data);
+          task.id = data.id;
         }
   );
 };
-
 
 
 
