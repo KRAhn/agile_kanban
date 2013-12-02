@@ -1,5 +1,5 @@
 #-*-coding:utf8-*-
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, Http404, HttpResponseBadRequest
 from django.views.generic import TemplateView, CreateView
 from kanban.models import Status, Task, Iteration
 from kanban.utils import JSONView, JSONResponseMixin
@@ -22,6 +22,24 @@ class IterationDetailView(JSONView):
                                                                iteration=iteration))
                                 for status in Status.objects.all()],
                     goal=iteration.goal)
+
+
+class TaskEditView(JSONView):
+    def get_context_data(self, task_id):
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            raise Http404()
+
+        task.title = self.get_parameter('title')
+        task.description = self.get_parameter('description')
+        task.author = self.get_parameter('author')
+        try:
+            task.status = Status.objects.get(name=self.get_parameter('status'))
+        except Status.DoesNotExist:
+            return HttpResponseBadRequest()
+        task.save()
+        return dict(code='OK')
 
 
 class TaskAddView(JSONView):

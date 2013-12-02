@@ -27,6 +27,7 @@ var TaskManager = {
         from.tasks = from.tasks.filter(function(task){return task.id != taskId;})
         to.tasks.push(ui.item.task);
         ui.item.task.status = to.name;
+        ui.item.task.push();
       }
     }, this));
   },
@@ -122,6 +123,18 @@ Task.prototype.render = function() {
   $article.append($('<p>'+this.description+'</p>'));
   return $article;
 };
+
+Task.prototype.push = function() {
+  $.post('/task/'+this.id+'/edit/', {
+    title:this.title,
+    description:this.description,
+    author:this.author,
+    status:this.status
+  }, function(data){
+    console.log(data);
+  }, 'json');
+}
+
 
 
 

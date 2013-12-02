@@ -10,4 +10,5 @@ urlpatterns = patterns(
     url(r'^$', HomePageView.as_view()),
     url(r'^iteration/now/$', IterationDetailView.as_view()),
     url(r'^iteration/now/add/$', TaskAddView.as_view()),
+    url(r'^task/(\d+)/edit/$', TaskEditView.as_view()),
 )
