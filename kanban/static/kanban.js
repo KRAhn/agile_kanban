@@ -24,7 +24,7 @@ var TaskManager = {
       if(ui.sender != undefined) {
         var from = this.getTaskGroupWithName(ui.sender.attr('data-name'));
         var to = this.getTaskGroupWithName($(event.currentTarget).attr('data-name'));
-        var taskId = ui.item.find('article').attr('data-id');
+        var taskId = ui.item.find('.task').attr('data-id');
         from.tasks.forEach(function(task) {
           if(task.id == taskId)
             ui.item.task = task;
@@ -69,7 +69,8 @@ var TaskManager = {
     task.author = $editForm.find('.author').val();
     task.description = $editForm.find('.description').val();
     task.push();
-    task.$element.children().toggle();
+    task.$element.children().toggle()
+    task.refresh();
   }
 };
 
@@ -192,6 +193,11 @@ Task.prototype.renderEditMode = function() {
   return $form;
 };
 
+Task.prototype.refresh = function() {
+  this.$element.find('article').remove();
+  this.$element.prepend(this.renderReadMode());
+};
+
 Task.prototype.transferToEditMode = function () {
   this.$element.children().toggle();
   var $form = this.$element.find('form');
@@ -299,7 +305,7 @@ $(function()
                            taskGroup.displayName,
                            taskGroup.tasks);
     });
-
+    TaskManager.iteration_id = iteration.id;
     TaskManager.renderPage();
   },  'json');
 

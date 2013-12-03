@@ -27,22 +27,33 @@
         width: 100%;
         height: 30px;
       }
-      .edit-button-wrap {
-        display: none;
-        position: absolute;
-        right: 10px;
-        .edit-button {
-          text-decoration: none;
-          color: blue;
-        }
+      table {
+        width: 95%;
+      }
+      input[type="text"], textarea {
+        width: 100%;
+      }
+      textarea {
+        height: 50px;
       }
 
-      &:hover {
+      article {
         .edit-button-wrap {
-          display: block;
+          display: none;
+          position: absolute;
+          right: 10px;
+          .edit-button {
+            text-decoration: none;
+            color: blue;
+          }
+        }
+
+        &:hover {
+          .edit-button-wrap {
+            display: block;
+          }
         }
       }
-
       .edit-form {
         display: none;
       }

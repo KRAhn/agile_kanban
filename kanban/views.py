@@ -10,18 +10,25 @@ class HomePageView(TemplateView):
 
 
 class IterationDetailView(JSONView):
-    def get_context_data(self):
-        try:
-            iteration = Iteration.objects.order_by('-id')[0]
-        except IndexError:
-            iteration = Iteration.objects.create(goal=u'목표를 입력하세요')
+    def get_context_data(self, iteration_id='now'):
+        if iteration_id == 'now':
+            try:
+                iteration = Iteration.objects.order_by('-id')[0]
+            except IndexError:
+                iteration = Iteration.objects.create(goal=u'목표를 입력하세요')
+        else:
+            try:
+                iteration = Iteration.objects.get(id=iteration_id)
+            except Iteration.DoesNotExist:
+                raise Http404()
         return dict(taskGroups=[dict(id=status.id,
                                      name=status.name,
                                      displayName=status.get_name_display(),
                                      tasks=Task.objects.filter(status=status,
                                                                iteration=iteration))
                                 for status in Status.objects.all()],
-                    goal=iteration.goal)
+                    goal=iteration.goal,
+                    id=iteration.id)
 
 
 class TaskEditView(JSONView):
