@@ -1,16 +1,16 @@
 #-*-coding:utf8-*-
 from django.http import HttpResponseNotFound, Http404, HttpResponseBadRequest
 from django.views.generic import TemplateView, CreateView
+from asap_web import AcurosView
 from kanban.models import Status, Task, Iteration
-from kanban.utils import JSONView, JSONResponseMixin
 
 
 class HomePageView(TemplateView):
     template_name = "home.html"
 
 
-class IterationDetailView(JSONView):
-    def get_context_data(self, iteration_id='now'):
+class IterationDetailView(AcurosView):
+    def preprocess(self, request, iteration_id='now'):
         if iteration_id == 'now':
             try:
                 iteration = Iteration.objects.order_by('-id')[0]
@@ -30,9 +30,15 @@ class IterationDetailView(JSONView):
                     goal=iteration.goal,
                     id=iteration.id)
 
+    def process_ajax_get_request(self, request, context):
+        return context
 
-class TaskEditView(JSONView):
-    def get_context_data(self, task_id):
+    def process_mobile_request(self, request, context):
+        return context
+
+
+class TaskEditView(AcurosView):
+    def preprocess(self, request, task_id):
         try:
             task = Task.objects.get(id=task_id)
         except Task.DoesNotExist:
@@ -48,9 +54,15 @@ class TaskEditView(JSONView):
         task.save()
         return dict(code='OK')
 
+    def process_ajax_post_request(self, request, context):
+        return context
 
-class TaskAddView(JSONView):
-    def get_context_data(self):
+    def process_mobile_request(self, request, context):
+        return context
+
+
+class TaskAddView(AcurosView):
+    def preprocess(self, request):
         title = self.get_parameter('title')
         author = self.get_parameter('author')
         description = self.get_parameter('description')
@@ -73,3 +85,9 @@ class TaskAddView(JSONView):
         )
 
         return dict(id=task.id)
+
+    def process_ajax_get_request(self, request, context):
+        return context
+
+    def process_mobile_request(self, request, context):
+        return context
